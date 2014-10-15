@@ -116,6 +116,8 @@ package com.andrefe;
  */
 public class ThePriceIsRight {
 
+    // CHECK: https://github.com/alno/topcoder/blob/master/thepriceisright-java/ThePriceIsRight.java
+    
     
     private int[] revealStep(
 	    int[] prices,

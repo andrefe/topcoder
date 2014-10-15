@@ -2,6 +2,7 @@ package com.andrefe;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import static java.lang.Math.*;
 
 /**
  * Problem Statement     
@@ -77,9 +78,9 @@ public class Salary {
      */
     private static class SalaryItem {
 	/** Working hours in the 06:00:00 -> 18:00:00 period. */
-	public int _standardSeconds = 0;
+	public long _standardSeconds = 0;
 	/** Working hours outside the 06:00:00 -> 18:00:00 period. */
-	public int _extraSeconds = 0;
+	public long _extraSeconds = 0;
 
 	void addStandardSeconds(int seconds) {
 	    _standardSeconds += seconds;
@@ -92,23 +93,17 @@ public class Salary {
 	int computeSalary(int wage) {
 	    // by keeping the two amounts at once, approximation error is
 	    // limited
-	    return _standardSeconds * wage / 3600 + _extraSeconds * wage / 2400; // *(3/2)/(3600)
+	    return (int)( (_standardSeconds * wage * 2 + _extraSeconds * wage ) / 7200 );
 	}
     };
 
     // -- Static start and stop times, string format
 
-    private static final String EVENING_START = "18:00:00";
-    private static final String EVENING_END = "24:00:00";
-    // private static final String NIGHT_START = "00:00:00";
-    private static final String NIGHT_END = "06:00:00";
-
-    // -- Static start and stop times, integer format
-
-    private static final int EVENING_START_TIME = stringToIntTime(EVENING_START);
-    private static final int EVENING_END_TIME = stringToIntTime(EVENING_END);
-    // private static final int NIGHT_START_TIME = stringToIntTime(NIGHT_START);
-    private static final int NIGHT_END_TIME = stringToIntTime(NIGHT_END);
+    private static final String DAY_START = "06:00:00";
+    private static final String NIGHT_START = "18:00:00";
+    
+    private static final int DAY_START_TIME = stringToIntTime(DAY_START);
+    private static final int NIGHT_START_TIME = stringToIntTime(NIGHT_START);
 
     /**
      * Converts HH:MM:SS strings into integers, considering the number
@@ -133,73 +128,6 @@ public class Salary {
 	return intTime;
     }
 
-//    private static int stringToIntTime(String strTime) {
-//	int intTime = 0;
-//	// look for three integers colon separated
-//	String[] elements = strTime.split(":");
-//	intTime += Integer.parseInt(elements[2]);
-//	intTime += Integer.parseInt(elements[1]) * 60;
-//	intTime += Integer.parseInt(elements[0]) * 3600;
-//	return intTime;
-//    }
-
-    private void evaluateHoursForEarlyShift(SalaryItem salary,
-	    int arrivalTime,
-	    int departureTime) {
-	// END before 06:00
-	if (departureTime < NIGHT_END_TIME) {
-	    salary.addExtraSeconds(departureTime - arrivalTime);
-	}
-	// END before 18:00
-	else if (departureTime < EVENING_START_TIME) {
-	    salary.addExtraSeconds(NIGHT_END_TIME - arrivalTime);
-	    salary.addStandardSeconds(departureTime - NIGHT_END_TIME);
-	}
-	// END before 24:00
-	else // if(departureTime < EVENING_END_TIME)
-	{
-	    salary.addExtraSeconds(NIGHT_END_TIME - arrivalTime);
-	    salary.addStandardSeconds(EVENING_START_TIME - NIGHT_END_TIME);
-	    salary.addExtraSeconds(EVENING_END_TIME - departureTime);
-	}
-    }
-
-    private void evaluateHoursForInnerShift(SalaryItem salary,
-	    int arrivalTime,
-	    int departureTime) {
-	// END before 18:00
-	if (departureTime < EVENING_START_TIME) {
-	    salary.addStandardSeconds(departureTime - arrivalTime);
-	}
-	// END before 24:00
-	else // if(departureTime < EVENING_END_TIME)
-	{
-	    salary.addStandardSeconds(EVENING_START_TIME - arrivalTime);
-	    salary.addExtraSeconds(EVENING_END_TIME - departureTime);
-	}
-    }
-
-    public void evaluateHoursForShift(SalaryItem salary,
-	    int arrivalTime,
-	    int departureTime) {
-	// START before 06:00
-	if (arrivalTime < NIGHT_END_TIME) {
-	    evaluateHoursForEarlyShift(salary, arrivalTime, departureTime);
-	}
-	// START after 18:00
-	else if (arrivalTime > EVENING_START_TIME) {
-	    salary.addExtraSeconds(departureTime - arrivalTime);
-	}
-	// START between 06:00 and 18:00
-	else {
-	    evaluateHoursForInnerShift(salary, arrivalTime, departureTime);
-	}
-    };
-
-    
-    
-    
-    
     public int howMuch(String[] arrival, String[] departure, int wage) {
 	// the salary item
 	SalaryItem salary = new SalaryItem();
@@ -216,7 +144,13 @@ public class Salary {
 	    int departureTime = stringToIntTime(departure[i]);
 
 	    // evaluates standard and extra hours for the shift
-	    evaluateHoursForShift(salary, arrivalTime, departureTime);
+	    salary.addStandardSeconds(departureTime-arrivalTime);
+	    
+	    int bonusEvening = min(DAY_START_TIME, departureTime) - min(DAY_START_TIME, arrivalTime);
+	    int bonusNight = max(departureTime, NIGHT_START_TIME) - max(arrivalTime, NIGHT_START_TIME);
+	    
+	    salary.addExtraSeconds(bonusEvening);
+	    salary.addExtraSeconds(bonusNight);
 	}
 
 	return salary.computeSalary(wage);

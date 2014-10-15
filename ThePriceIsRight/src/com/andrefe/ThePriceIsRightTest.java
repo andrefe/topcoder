@@ -61,7 +61,8 @@ public class ThePriceIsRightTest {
 	int[] result = new ThePriceIsRight().howManyReveals(prices);
 	System.out.println(result[0] + "," + result[1]);
 	int[] expectedResult = { 4, 1 };
-	assert(result == expectedResult);
+	System.out.println(expectedResult[0] + "," + expectedResult[1]);
+	assertArrayEquals(result,expectedResult);
     }
     
     @Test
@@ -70,7 +71,7 @@ public class ThePriceIsRightTest {
 	int[] result = new ThePriceIsRight().howManyReveals(prices);
 	System.out.println(result[0] + "," + result[1]);
 	int[] expectedResult = { 4, 2 };
-	assert(result == expectedResult);
+	assertArrayEquals(result,expectedResult);
     }
     
     @Test
@@ -79,7 +80,7 @@ public class ThePriceIsRightTest {
 	int[] result = new ThePriceIsRight().howManyReveals(prices);
 	System.out.println(result[0] + "," + result[1]);
 	int[] expectedResult = { 10, 1 };
-	assert(result == expectedResult);
+	assertArrayEquals(result,expectedResult);
     }
     
     @Test
@@ -88,7 +89,7 @@ public class ThePriceIsRightTest {
 	int[] result = new ThePriceIsRight().howManyReveals(prices);
 	System.out.println(result[0] + "," + result[1]);
 	int[] expectedResult = { 1, 10 };
-	assert(result == expectedResult);
+	assertArrayEquals(result,expectedResult);
     }
     
     @Test
@@ -97,7 +98,7 @@ public class ThePriceIsRightTest {
 	int[] result = new ThePriceIsRight().howManyReveals(prices);
 	System.out.println(result[0] + "," + result[1]);
 	int[] expectedResult = {5,2};
-	assert(result == expectedResult);
+	assertArrayEquals(result,expectedResult);
     }
     
     @Test
@@ -106,6 +107,6 @@ public class ThePriceIsRightTest {
 	int[] result = new ThePriceIsRight().howManyReveals(prices);
 	System.out.println(result[0] + "," + result[1]);
 	int[] expectedResult = { 3, 1 };
-	assert(result == expectedResult);
+	assertArrayEquals(result,expectedResult);
     }
 }

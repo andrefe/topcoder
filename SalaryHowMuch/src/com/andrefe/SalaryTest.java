@@ -1,4 +1,6 @@
 package com.andrefe;
+import static org.junit.Assert.*;
+
 import org.junit.Test;
 
 
@@ -52,7 +54,7 @@ public class SalaryTest {
 	int wage = 1000;
 	int salary = new Salary().howMuch(arrival, departure, wage);
 	System.out.println("test0: " + salary);
-	assert (salary == 10015);
+	assertTrue(salary == 10015);
     }
     
     @Test
@@ -62,7 +64,7 @@ public class SalaryTest {
 	int wage = 2000;
 	int salary = new Salary().howMuch(arrival, departure, wage);
 	System.out.println("test1: " + salary);
-	assert (salary == 33920);
+	assertTrue(salary == 33920);
     }
     
     @Test
@@ -72,7 +74,7 @@ public class SalaryTest {
 	int wage = 10000;
 	int salary = new Salary().howMuch(arrival, departure, wage);
 	System.out.println("test2: " + salary);
-	assert (salary == 299995);
+	assertTrue(salary == 299995);
     }
     
     @Test
@@ -82,7 +84,7 @@ public class SalaryTest {
 	int wage = 10000;
 	int salary = new Salary().howMuch(arrival, departure, wage);
 	System.out.println("test3: " + salary);
-	assert (salary == 80000);
+	assertTrue(salary == 80000);
     }  
     
     @Test
@@ -92,6 +94,6 @@ public class SalaryTest {
 	int wage = 5320;
 	int salary = new Salary().howMuch(arrival, departure, wage);
 	System.out.println("test4: " + salary);
-	assert (salary == 7049);
+	assertTrue(salary == 7049);
     }  
 }

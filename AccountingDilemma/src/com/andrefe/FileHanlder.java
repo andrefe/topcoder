@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,10 +23,10 @@ public class FileHanlder {
      *        the operations.
      * @return the
      * @throws IOException */
-    public static ArrayList<Integer> readOperations(String operationsFilePath)
+    public static List<Integer> readOperations(String operationsFilePath)
 	    throws IOException {
 	// prepare the array where we will put the line-by-line parsed data
-	ArrayList<Integer> operations = new ArrayList<Integer>();
+	List<Integer> operations = new ArrayList<Integer>();
 
 	// parse the specified file
 	Path aPath = Paths.get(operationsFilePath);
@@ -62,7 +63,7 @@ public class FileHanlder {
      * @param results
      * @throws IOException */
     public static void writeResults(String resultsFilePath,
-	    ArrayList<Integer> results) throws IOException {
+	    List<Integer> results) throws IOException {
 	Path aPath = Paths.get(resultsFilePath);
 	try (BufferedWriter writer = Files.newBufferedWriter(aPath,
 		Charset.defaultCharset())) {

@@ -7,8 +7,9 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,16 +18,25 @@ public class FileHanlder {
     /** Processes the provided file, looking for a set of operations, so as to
      * find a valid subset that sums uo to the input balance.
      * 
+     * This method also orders the results found in a file for a proper
+     * processing in the AccountingDilemma class.
+     * 
+     * Moreover, the GCD is also evaluated.
+     * 
      * 
      * @param operationsFilePath
      *        the path towards the file where to look for
      *        the operations.
      * @return the
      * @throws IOException */
-    public static List<Integer> readOperations(String operationsFilePath)
+    public static OperationBatch readOperations(String operationsFilePath)
 	    throws IOException {
+	// the target balance will be stored here
+	int targetBalance = -1;
 	// prepare the array where we will put the line-by-line parsed data
-	List<Integer> operations = new ArrayList<Integer>();
+	Queue<Integer> operations = new PriorityQueue<Integer>();
+	// the gcd will be stored here
+	int gcd = 0;
 
 	// parse the specified file
 	Path aPath = Paths.get(operationsFilePath);
@@ -45,7 +55,15 @@ public class FileHanlder {
 		    value += Integer.parseInt(valueMatcher.group(2)
 			    .substring(1));
 		}
-		operations.add(value);
+		// the first line refers to the target balance
+		if(targetBalance == -1){
+		    targetBalance = value;
+		}
+		else{
+		    operations.add(value);
+		}
+		// continuously evaluate the gcd
+		gcd = gcd > 0 ? Gcd.compute(gcd, value) : value;
 	    }
 	}
 	// just log the error, but let the caller deal with that.
@@ -54,7 +72,11 @@ public class FileHanlder {
 		    + e.getMessage());
 	    throw e;
 	}
-	return operations;
+	
+	// create an object for the AccountingDilemma's processing - note that
+	// the priorityqueue containing the items will be converted to an
+	// arraylist
+	return new OperationBatch(targetBalance,operations,gcd);
     }
 
     /** Writes down to the provided file the results set.
@@ -67,6 +89,14 @@ public class FileHanlder {
 	Path aPath = Paths.get(resultsFilePath);
 	try (BufferedWriter writer = Files.newBufferedWriter(aPath,
 		Charset.defaultCharset())) {
+	    
+	    // if there are no results, write the default string
+	    if(results.size() == 0)
+	    {
+		String noResult = "NO SOLUTION";
+		writer.write(noResult, 0, noResult.length());
+	    }
+	    
 	    // write each value to disk
 	    for (Integer value : results) {
 		// convert values from cent-based to decimal dotted ones

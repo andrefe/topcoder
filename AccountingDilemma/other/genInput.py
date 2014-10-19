@@ -12,7 +12,7 @@ chosenOperations = list()
 
 for i in range(0,iterations):
 
-	genOperation = random.randint(100,1000000)
+	genOperation = random.randint(100,100000)
 	shouldITakeIt = random.randint(0,100)
 	if shouldITakeIt <= int(sys.argv[2]):
 		balance = balance + genOperation

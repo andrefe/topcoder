@@ -33,36 +33,38 @@ public class AccountingDilemma {
 
     }
 
-    public static int computeIterativeComplexityMaxExecutions(List<Integer> operations,
-	    int gcd,
-	    int targetBalance) {
-	return (targetBalance / gcd + 1) * operations.size();
-
-    };
-
-    public static int computeIterativeComplexityMaxExecutions(List<Integer> operations,
-	    int targetBalance) {
-	return targetBalance * operations.size();
-
-    };
-
-    private static void logFinalStatistics(List<Integer> orderedOperations,
-	    int gcd,
-	    int targetBalance,
-	    int numberOfExecutions,
-	    List<Integer> resultingList) {
-	System.out.println("Solution found in iteration "
-		+ numberOfExecutions
-		+ " out of "
-		+ computeIterativeComplexityMaxExecutions(orderedOperations,
-			gcd, targetBalance)
-		+ " at a pace of "
-		+ gcd
-		+ " (without gcd "
-		+ computeIterativeComplexityMaxExecutions(orderedOperations,
-			targetBalance) + "): " + resultingList.toString());
+    int _minimumOperation = 0;
+    
+    private int getBalanceValue(int[] balanceArray, int balance)
+    {
+	if(balance < _minimumOperation)
+	{
+	    return 0;
+	}
+	    
+	return balanceArray[balance - _minimumOperation];
     }
-
+    
+    private void setBalanceValue(int[] balanceArray, int balance, int value)
+    {
+	balanceArray[balance - _minimumOperation] = value;
+    }
+    
+    private boolean getChosenValue(boolean[][] chosenMatrix, int step, int balance)
+    {
+	if(balance < _minimumOperation)
+	{
+	    return false;
+	}
+	
+	return chosenMatrix[step][balance - _minimumOperation];
+    }
+    
+    private void setChosenValue(boolean[][] chosenMatrix, int step, int balance, boolean value)
+    {
+	chosenMatrix[step][balance - _minimumOperation] = value;
+    }
+    
     /** Processes the provided operations ordered list so as to find a valid
      * subset that sums up to the input balance.
      * 
@@ -71,7 +73,7 @@ public class AccountingDilemma {
      * @param targetBalance the targeted value to enforce on the returned
      *        subset;
      * @return the subset of values whose sum is the balance. */
-    public static List<Integer> computeSequenceIterative(List<Integer> orderedOperations,
+    public List<Integer> computeSequenceIterative(List<Integer> orderedOperations,
 	    int gcd,
 	    int targetBalance) {
 
@@ -97,8 +99,37 @@ public class AccountingDilemma {
 	 * step(i - 1) so as to evaluate step(i): therefore, we can reduce
 	 * the memory footprint of our algorithm by keeping a smaller results
 	 * set during each step. */
+	
+	// check if there are no operations: in this case, there cannot be
+	// a valid sequence.
+	if(orderedOperations.size() == 0){
+	    return new ArrayList<Integer>();
+	}
+	
+	// check if the targeted balance cannot even be satisfied by the
+	// lowest operation: in this case, there cannot be a valid sequence
+	_minimumOperation = orderedOperations.get(0);
+	if(targetBalance < _minimumOperation){
+	    return new ArrayList<Integer>();
+	}
+	
+	// check if the targeted balance can be only satisfied by the lowest
+	// operation only: in this case, return a single element list.
+	int secondOperation = orderedOperations.size() >= 2 ?
+		orderedOperations.get(1) : orderedOperations.get(0) + 1;
+	if(targetBalance < secondOperation){
+	    List<Integer> aList = new ArrayList<Integer>();
+	    aList.add(_minimumOperation);
+	    return aList;
+	}
+	
+	// from now on, a classic search will be performed
+	
 	int steps = orderedOperations.size();
-	int rounds = targetBalance + 1;
+	// OPTIMIZATION: while considering increasing balances, any balance 
+	// value lower than the lowest operation will return zero: therefore,
+	// there is no need to effectively process it.
+	int rounds = targetBalance + 1 - _minimumOperation;
 
 	// allocates the needed steps
 	int[] previousStep = new int[rounds]; // all elements set to 0
@@ -119,11 +150,10 @@ public class AccountingDilemma {
 	int balanceIncrease = gcd;
 
 	int balance = 0;
-	int numberOfExecutions = 0;
 	for (int step = 0; step < steps; ++step) {
 	    int operation = orderedOperations.get(step);
-	    for (balance = 0; balance <= targetBalance; balance += balanceIncrease) {
-		int chosenBalance = previousStep[balance];
+	    for (balance = _minimumOperation; balance <= targetBalance; balance += balanceIncrease) {
+		int chosenBalance = getBalanceValue(previousStep,balance);
 		// check if there is enough balance to consider this operation
 		if (balance >= operation) {
 
@@ -135,22 +165,20 @@ public class AccountingDilemma {
 		     * been:
 		     * 
 		     * balance(X,b) = MAX{balance(X-x,b-x),balance(X-x,b)} */
-		    int balanceWithout = previousStep[balance];
-		    int balanceWith = previousStep[balance - operation]
+		    int balanceWithout = chosenBalance;
+		    int balanceWith = getBalanceValue(previousStep,balance - operation)
 			    + operation;
 
 		    if (balanceWith > balanceWithout) {
 			chosenBalance = balanceWith;
-			chosenItems[step][balance] = true;
+			setChosenValue(chosenItems,step,balance,true);
 		    }
 		}
-
-		++numberOfExecutions;
 
 		// OPTIMIZATION: we could have proceeded till the end
 		// there is no need to proceed further in this step
 		// if we were lucky to find the target balance.
-		currentStep[balance] = chosenBalance;
+		setBalanceValue(currentStep,balance,chosenBalance);
 		if (chosenBalance == targetBalance) {
 		    break;
 		}
@@ -160,8 +188,8 @@ public class AccountingDilemma {
 	    // OPTIMIZATION: we could have proceeded till the end
 	    // there is no need to proceed further if we were lucky to find
 	    // the target balance.
-	    balance = balance > rounds ? targetBalance : balance;
-	    if (currentStep[balance] == targetBalance) {
+	    balance = balance > targetBalance ? targetBalance : balance;
+	    if (getBalanceValue(currentStep,balance) == targetBalance) {
 		break;
 	    }
 
@@ -171,7 +199,7 @@ public class AccountingDilemma {
 	}
 
 	// check what is the maximized balance
-	int finalBalance = currentStep[balance];
+	int finalBalance = getBalanceValue(currentStep,balance);
 	ArrayList<Integer> resultingList = new ArrayList<Integer>();
 	if (finalBalance != targetBalance) {
 	    System.out.println("No operations found for the provided balance: "
@@ -180,15 +208,11 @@ public class AccountingDilemma {
 	    // evaluate the proper iteration solution
 	    int tempBalance = targetBalance;
 	    for (int step = steps - 1; step >= 0; --step) {
-		if (chosenItems[step][tempBalance] == true) {
+		if ( getChosenValue(chosenItems,step,tempBalance) == true) {
 		    tempBalance = tempBalance - orderedOperations.get(step);
 		    resultingList.add(orderedOperations.get(step));
 		}
 	    }
-	    
-	    // log also any eventual gain!
-	    logFinalStatistics(orderedOperations, gcd, targetBalance,
-		    numberOfExecutions,resultingList);
 	}
 
 	return resultingList;
@@ -200,7 +224,7 @@ public class AccountingDilemma {
      * @param operationsFilePath the path where to look for the operations.
      * @return the subset of values whose sum is the balance.
      * @throws IOException read/write issues might occur. */
-    public List<Integer> computeSequence(String operationsFilePath,
+    public List<Integer> computeSequenceIterative(String operationsFilePath,
 	    String resultsFilePath) throws IOException {
 	List<Integer> results = new ArrayList<Integer>();
 	try {

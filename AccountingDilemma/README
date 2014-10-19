@@ -30,18 +30,20 @@ INFO - Result written to outputMy.txt
 
 You can find summarized in this file the key points that helped me throughout designing a solution for the Accounting Dilemma problem.
 
-I modeled the presented problem as a change making problem, for which I intend a 0-1 knapsack problem with: 
+I modeled the presented problem as a change making problem, a 0-1 knapsack problem with: 
  - weights equal to values;
  - equality to the capacity (the bank transfer in our case) rather than a lower than constraint.
 
-As a minor note, I used throughout the code (and this README) the term targeted balance rather than bank transfer to identify the amount we want to find as sum of some operations.
+As a minor note, I used throughout the code (and throughout this README) the term targeted balance rather than bank transfer to identify the amount we want to find as sum of some operations.
 
-Therefore, I put in place a dynamic programming solution, leveraging on the fact that solving an accounting dilemma problem for the operations list X with balance b led to solve both:
+Therefore, I coded a dynamic programming solution, leveraging on the fact that solving an accounting dilemma problem for the operations list X with balance b led to solve both:
  - Accounting Dilemma on operations list X - xi with balance b - xi;
  - Accounting Dilemma on operations list X - xi with balance b;
 with xi an operation within X. 
 
-Therefore this (in principle) recursive solution with exponential complexity can be iteratively solved in pseudo polynomial time by solving all the problems from a one element operations list to the full set for all possible balances. 
+Therefore this (in principle) recursive solution with exponential complexity can be iteratively solved in pseudo polynomial time by solving all the problems:
+ - from a one element operations list to the full operations list;
+    - for all possible balances. 
 
 If n is the number of operations and k the balance expressed in cents, the implemented solution that has (without further optimization) a time complexity of O(nk) and a space complexity of O(nk).
 
@@ -49,12 +51,16 @@ Before proceeding to some specific optimization that I tried to carry out to red
  - "having no targeted balance larger than 10,000 dollars" allowed me to: 
       a) consider only 32 bit integer values throughout the solution (1,000,000 cents is lower than MAX_INT32);
       b) skip any value in the due payments that was not mappable to an integer (for sure it would have not been a good candidate for a lower targeted balance); 
-      c) do not process any target balance which value is bigger than 10,000 $.
+      c) return an empty list for any target balance which value is bigger than 10,000 $.
  - I did not considered any negative value throughout the operations list: since the problem referred to "amount the company should receive as payment for a given product which has been recently sold", I assumed that "debits" (negative values) were not to be considered.
 
-Those two considerations are tested and analyzed in testFile4_OK_SkipInvalidOperations and testFile6_ERR_TooBigBalance of the AccountingDilemmaTest JUnit test class.
+As lemma of the previous, I also skipped the processing of any operation in the list whose value was greater than the targeted balance.
 
-I coded a dynamic programming solution based on a couple of optimizations so as to:
+Those considerations are tested and analyzed in testFile4_OK_SkipInvalidOperations and testFile6_ERR_TooBigBalance of the AccountingDilemmaTest JUnit test class.
+
+
+
+The coded dynamic programming solution is provided with a couple of optimizations so as to:
  - reduce the time complexity to O(nk'), with k' <= k;
  - reduce the space complexity to O(nk') + 2*O(k'), with k' <= k;
 

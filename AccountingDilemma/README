@@ -1,4 +1,32 @@
-Hello,
+
+
+Hello to you!
+
+
+
+---- LAUNCH THE APPLICATION:
+
+**The binary can be found in the bin/ folder**
+
+# help
+$ ./find_payments.jar 
+Usage: find_payments.jar INPUT_FILE [OUTPUT_FILE]
+
+# input file (writes to output.txt as default)
+$ ./find_payments.jar ../res/input2.txt 
+INFO - Found 100 valid operations
+INFO - Result found in 25133990 iterations with gcd 1 for balance 7403.63
+INFO - Result written to output.txt
+
+# input and output file
+$ ./find_payments.jar ../res/input2.txt outputMy.txt
+INFO - Found 100 valid operations
+INFO - Result found in 25133990 iterations with gcd 1 for balance 7403.63
+INFO - Result written to outputMy.txt
+
+
+
+---- DESIGN NOTES
 
 You can find summarized in this file the key points that helped me throughout designing a solution for the Accounting Dilemma problem.
 
@@ -52,21 +80,6 @@ I made the following consideration:
  - Finally, there is no need to consider all the cents between the minimum balance and the targeted balance: while parsing the input file and building the operations list, also the GCD is evaluated and finally passed as pace for the inner cycle. This leads us to another refinement of k'' <= k' <= k that greatly reduces the time complexity when the GCD is not 1.
 
 There are also some comments in the code that should help while looking at the solution, as well as unit tests in the AccountDilemmaTest that I used so as to validate the solution.
-
-
-LAUNCH THE APPLICATION:
-
-# help
-$ ./find_payments.jar 
-Usage: find_payments.jar INPUT_FILE [OUTPUT_FILE]
-
-# input file (writes to output.txt as default)
-$ ./find_payments.jar ../res/input2.txt 
-INFO - Result found in 243477720 iterations with gcd 1 for balance 67666.66
-
-# input and output file
-$ ./find_payments.jar ../res/input2.txt output2.txt
-INFO - Result found in 243477720 iterations with gcd 1 for balance 67666.66
 
 
 Federico

@@ -45,7 +45,7 @@ public class FileHanlder {
 	try {
 	    // treat each line according to an integer and (optional) cents
 	    // value pattern: any leading space or + sign is tolerated
-	    Pattern valuePattern = Pattern.compile("^[\\s\\+]*(\\d+)(\\.[\\d]{0,2})");
+	    Pattern valuePattern = Pattern.compile("^[\\s\\+]*([0-9]+)(\\.[0-9]{0,2})[\\s]*$");
 	    String line = null;
 	    while ((line = reader.readLine()) != null) {
 		// convert the string(s) to a cent value
@@ -68,7 +68,7 @@ public class FileHanlder {
 		    // a bogus negative value ended into the due payment list:
 		    // skip it
 		    if (value < 0) {
-			System.out.println("An invalid value was found ("
+			System.out.println("WARN - An invalid value was found ("
 				+ line + ") skipping it");
 			continue;
 		    }
@@ -80,7 +80,7 @@ public class FileHanlder {
 			operations.add(value);
 		    }
 		    else {
-			System.out.println("Skipping value " + line
+			System.out.println("WARN - Skipping value " + line
 				    + " since it is bigger than the targeted "
 				    + "balance");
 		    }
@@ -88,14 +88,14 @@ public class FileHanlder {
 		    gcd = gcd > 0 ? Gcd.compute(gcd, value) : value;
 
 		} else {
-		    System.out.println("An invalid value was found (" + line
+		    System.out.println("WARN - An invalid value was found (" + line
 			    + ") skipping it");
 		}
 	    }
 	}
 	// just log the error, but let the caller deal with that.
 	catch (IOException e) {
-	    System.err.println("Error while reading operations "
+	    System.err.println("ERR - Error while reading operations "
 		    + e.getMessage());
 	    throw e;
 	} finally {
@@ -126,6 +126,7 @@ public class FileHanlder {
 	    if (results.size() == 0) {
 		String noResult = "NO SOLUTION";
 		writer.write(noResult, 0, noResult.length());
+		writer.newLine();
 	    }
 
 	    // write each value to disk
@@ -148,7 +149,7 @@ public class FileHanlder {
 	}
 	// just log the error, but let the caller deal with that.
 	catch (IOException e) {
-	    System.err.println("Error while writing results " + e.getMessage());
+	    System.err.println("ERR - Error while writing results " + e.getMessage());
 	    throw e;
 	} finally {
 	    if (writer != null) {

@@ -113,7 +113,7 @@ public class AccountingDilemma {
 			setChosenValue(chosenItems, step, balance, true);
 		    }
 		}
-		
+
 		++numberOfSteps;
 
 		// OPTIMIZATION: we could have proceeded till the end
@@ -143,8 +143,8 @@ public class AccountingDilemma {
 	int finalBalance = getBalanceValue(currentStep, balance);
 	ArrayList<Integer> resultingList = new ArrayList<Integer>();
 	if (finalBalance != targetBalance) {
-	    System.out.println("No operations found for the provided balance: "
-		    + finalBalance + " vs " + targetBalance);
+	    System.out.println("WARN - No operations found for the provided balance: "
+		    + finalBalance/100.0 + " vs " + targetBalance/100.0);
 	} else {
 	    // evaluate the proper iteration solution
 	    int tempBalance = targetBalance;
@@ -154,8 +154,9 @@ public class AccountingDilemma {
 		    resultingList.add(orderedOperations.get(step));
 		}
 	    }
-	    
-	    System.out.println("Result found in " + numberOfSteps + " iterations with gcd " + gcd);
+
+	    System.out.println("INFO - Result found in " + numberOfSteps
+		    + " iterations with gcd " + gcd + " for balance " +  targetBalance/100.0);
 	}
 
 	return resultingList;
@@ -165,12 +166,13 @@ public class AccountingDilemma {
      * find a valid subset that sums up to the input balance.
      * 
      * @param operationsFilePath the path where to look for the operations.
+     * @param operationsFilePath the path where to store the result.
      * @return the subset of values whose sum is the balance.
      * @throws IOException read/write issues might occur. */
     public List<Integer> computeSequenceIterative(String operationsFilePath,
-	    String resultsFilePath) throws IOException {
+	    String resultsFilePath) {
 	List<Integer> results = new ArrayList<Integer>();
-	
+
 	// compute the solution
 	try {
 	    OperationBatch operationBatch = FileHanlder
@@ -191,8 +193,32 @@ public class AccountingDilemma {
 	return results;
     }
 
+    /** Processes the provided file, looking for a set of operations, so as to
+     * find a valid subset that sums up to the input balance.
+     * 
+     * @param operationsFilePath the path where to look for the operations.
+     * @return the subset of values whose sum is the balance.
+     * @throws IOException read/write issues might occur. */
+    public List<Integer> computeSequenceIterative(String operationsFilePath) {
+	return computeSequenceIterative(operationsFilePath, "output.txt");
+    }
+
+    public static void main(String[] args) {
+	if(args.length == 1){
+	    new AccountingDilemma().computeSequenceIterative(args[0]);
+	}
+	else if (args.length == 2){
+	    new AccountingDilemma().computeSequenceIterative(args[0],args[1]);
+	}
+	else{
+	    System.out.println("Usage: find_payments.jar INPUT_FILE [OUTPUT_FILE]");
+	    return;
+	}
+	    
+    }
+
     // --- Utility methods
-    
+
     /** Returns the balance value for the provided balance array at the
      * provided index.
      * 

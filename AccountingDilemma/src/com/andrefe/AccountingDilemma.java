@@ -6,65 +6,14 @@ import java.util.List;
 
 public class AccountingDilemma {
 
-    public static List<Integer> computeSequenceRecursive(List<Integer> operations,
-	    int targetBalance) {
-	List<Integer> bestList = new ArrayList<Integer>();
-	computeSequenceRecursive(operations, targetBalance, bestList);
-	return bestList;
-    }
+    // -----> MEMBERS <----- //
 
-    public static int computeSequenceRecursive(List<Integer> operations,
-	    int remainingBalance,
-	    List<Integer> bestList) {
-
-	// check for termination
-	if (operations.size() == 0) {
-	    return remainingBalance;
-	}
-	if (remainingBalance == 0) {
-	    return 0;
-	} else if (remainingBalance < 0) {
-	    return -1;
-	}
-
-	// TODO
-	
-	return 0;
-
-    }
-
+    /** This variable will contain the minimum operation value among the
+     * provided list of operations. */
     int _minimumOperation = 0;
-    
-    private int getBalanceValue(int[] balanceArray, int balance)
-    {
-	if(balance < _minimumOperation)
-	{
-	    return 0;
-	}
-	    
-	return balanceArray[balance - _minimumOperation];
-    }
-    
-    private void setBalanceValue(int[] balanceArray, int balance, int value)
-    {
-	balanceArray[balance - _minimumOperation] = value;
-    }
-    
-    private boolean getChosenValue(boolean[][] chosenMatrix, int step, int balance)
-    {
-	if(balance < _minimumOperation)
-	{
-	    return false;
-	}
-	
-	return chosenMatrix[step][balance - _minimumOperation];
-    }
-    
-    private void setChosenValue(boolean[][] chosenMatrix, int step, int balance, boolean value)
-    {
-	chosenMatrix[step][balance - _minimumOperation] = value;
-    }
-    
+
+    // -----> METHODS <----- //
+
     /** Processes the provided operations ordered list so as to find a valid
      * subset that sums up to the input balance.
      * 
@@ -77,19 +26,7 @@ public class AccountingDilemma {
 	    int gcd,
 	    int targetBalance) {
 
-	/* The proper change for:
-	 * - a set of operations X, whose first element is x
-	 * - a balance b
-	 * Will be either
-	 * a) the proper change for set X' (X without x) for balance b -x
-	 * b) the proper change for set X' (X without x) for balance b
-	 * 
-	 * So as to solve this problem, we can put in place a dynamic
-	 * programming algorithm that evaluates the best solution for a
-	 * balance progressively increasing to the target one on a set of
-	 * operations progressively increasing to the provided one.
-	 * 
-	 * As naming convention,
+	/* As naming convention
 	 * - a step is an iteration on a list containing an additional element
 	 * from the list of the operations.
 	 * - a round is an iteration, within a given step, considering a
@@ -99,34 +36,34 @@ public class AccountingDilemma {
 	 * step(i - 1) so as to evaluate step(i): therefore, we can reduce
 	 * the memory footprint of our algorithm by keeping a smaller results
 	 * set during each step. */
-	
+
 	// check if there are no operations: in this case, there cannot be
 	// a valid sequence.
-	if(orderedOperations.size() == 0){
+	if (orderedOperations.size() == 0) {
 	    return new ArrayList<Integer>();
 	}
-	
+
 	// check if the targeted balance cannot even be satisfied by the
 	// lowest operation: in this case, there cannot be a valid sequence
 	_minimumOperation = orderedOperations.get(0);
-	if(targetBalance < _minimumOperation){
+	if (targetBalance < _minimumOperation) {
 	    return new ArrayList<Integer>();
 	}
-	
+
 	// check if the targeted balance can be only satisfied by the lowest
 	// operation only: in this case, return a single element list.
-	int secondOperation = orderedOperations.size() >= 2 ?
-		orderedOperations.get(1) : orderedOperations.get(0) + 1;
-	if(targetBalance < secondOperation){
+	int secondOperation = orderedOperations.size() >= 2 ? orderedOperations
+		.get(1) : orderedOperations.get(0) + 1;
+	if (targetBalance < secondOperation) {
 	    List<Integer> aList = new ArrayList<Integer>();
 	    aList.add(_minimumOperation);
 	    return aList;
 	}
-	
+
 	// from now on, a classic search will be performed
-	
+
 	int steps = orderedOperations.size();
-	// OPTIMIZATION: while considering increasing balances, any balance 
+	// OPTIMIZATION: while considering increasing balances, any balance
 	// value lower than the lowest operation will return zero: therefore,
 	// there is no need to effectively process it.
 	int rounds = targetBalance + 1 - _minimumOperation;
@@ -142,7 +79,7 @@ public class AccountingDilemma {
 	 * As final step, we will perform a reverse-emission of the array, with
 	 * a decreasing capacity (see further). */
 	boolean[][] chosenItems = new boolean[steps][rounds]; // all elements
-							      // set to false
+	// set to false
 
 	// OPTIMIZATION: we could have simply used ++
 	// by using the greater common divisor, we will be able to skip cents
@@ -150,10 +87,11 @@ public class AccountingDilemma {
 	int balanceIncrease = gcd;
 
 	int balance = 0;
+	int numberOfSteps = 0;
 	for (int step = 0; step < steps; ++step) {
 	    int operation = orderedOperations.get(step);
 	    for (balance = _minimumOperation; balance <= targetBalance; balance += balanceIncrease) {
-		int chosenBalance = getBalanceValue(previousStep,balance);
+		int chosenBalance = getBalanceValue(previousStep, balance);
 		// check if there is enough balance to consider this operation
 		if (balance >= operation) {
 
@@ -166,19 +104,22 @@ public class AccountingDilemma {
 		     * 
 		     * balance(X,b) = MAX{balance(X-x,b-x),balance(X-x,b)} */
 		    int balanceWithout = chosenBalance;
-		    int balanceWith = getBalanceValue(previousStep,balance - operation)
+		    int balanceWith = getBalanceValue(previousStep, balance
+			    - operation)
 			    + operation;
 
 		    if (balanceWith > balanceWithout) {
 			chosenBalance = balanceWith;
-			setChosenValue(chosenItems,step,balance,true);
+			setChosenValue(chosenItems, step, balance, true);
 		    }
 		}
+		
+		++numberOfSteps;
 
 		// OPTIMIZATION: we could have proceeded till the end
 		// there is no need to proceed further in this step
 		// if we were lucky to find the target balance.
-		setBalanceValue(currentStep,balance,chosenBalance);
+		setBalanceValue(currentStep, balance, chosenBalance);
 		if (chosenBalance == targetBalance) {
 		    break;
 		}
@@ -189,7 +130,7 @@ public class AccountingDilemma {
 	    // there is no need to proceed further if we were lucky to find
 	    // the target balance.
 	    balance = balance > targetBalance ? targetBalance : balance;
-	    if (getBalanceValue(currentStep,balance) == targetBalance) {
+	    if (getBalanceValue(currentStep, balance) == targetBalance) {
 		break;
 	    }
 
@@ -199,7 +140,7 @@ public class AccountingDilemma {
 	}
 
 	// check what is the maximized balance
-	int finalBalance = getBalanceValue(currentStep,balance);
+	int finalBalance = getBalanceValue(currentStep, balance);
 	ArrayList<Integer> resultingList = new ArrayList<Integer>();
 	if (finalBalance != targetBalance) {
 	    System.out.println("No operations found for the provided balance: "
@@ -208,11 +149,13 @@ public class AccountingDilemma {
 	    // evaluate the proper iteration solution
 	    int tempBalance = targetBalance;
 	    for (int step = steps - 1; step >= 0; --step) {
-		if ( getChosenValue(chosenItems,step,tempBalance) == true) {
+		if (getChosenValue(chosenItems, step, tempBalance) == true) {
 		    tempBalance = tempBalance - orderedOperations.get(step);
 		    resultingList.add(orderedOperations.get(step));
 		}
 	    }
+	    
+	    System.out.println("Result found in " + numberOfSteps + " iterations with gcd " + gcd);
 	}
 
 	return resultingList;
@@ -227,16 +170,96 @@ public class AccountingDilemma {
     public List<Integer> computeSequenceIterative(String operationsFilePath,
 	    String resultsFilePath) throws IOException {
 	List<Integer> results = new ArrayList<Integer>();
+	
+	// compute the solution
 	try {
 	    OperationBatch operationBatch = FileHanlder
 		    .readOperations(operationsFilePath);
 	    results = computeSequenceIterative(operationBatch.getOperations(),
 		    operationBatch.getGcd(), operationBatch.getTargetBalance());
+	} catch (Exception e) {
+	    results.clear();
+	}
+
+	// write the solution
+	try {
 	    FileHanlder.writeResults(resultsFilePath, results);
 	} catch (Exception e) {
 	    results.clear();
-	    e.printStackTrace();
 	}
+
 	return results;
+    }
+
+    // --- Utility methods
+    
+    /** Returns the balance value for the provided balance array at the
+     * provided index.
+     * 
+     * This method accesses the array taking into account the minimum
+     * operation optimization (i.e any balances lower than the minimum
+     * operation are directly returned with value zero).
+     * 
+     * @param balanceArray
+     * @param balance
+     * @return */
+    private int getBalanceValue(int[] balanceArray, int balance) {
+	if (balance < _minimumOperation) {
+	    return 0;
+	}
+
+	return balanceArray[balance - _minimumOperation];
+    }
+
+    /** Sets the value for the provided balance array at the provided index.
+     * 
+     * This method accesses the array taking into account the minimum
+     * operation optimization (i.e any balances lower than the minimum
+     * operation are directly returned with value zero).
+     * 
+     * @param balanceArray
+     * @param balance
+     * @param value */
+    private void setBalanceValue(int[] balanceArray, int balance, int value) {
+	balanceArray[balance - _minimumOperation] = value;
+    }
+
+    /** Returns true if the provided item with the provided balance value
+     * was marked as chosen in the provided matrix.
+     * 
+     * This method accesses the array taking into account the minimum
+     * operation optimization (i.e any balances lower than the minimum
+     * operation are directly returned with value zero).
+     * 
+     * @param chosenMatrix
+     * @param item
+     * @param balance
+     * @return */
+    private boolean getChosenValue(boolean[][] chosenMatrix,
+	    int item,
+	    int balance) {
+	if (balance < _minimumOperation) {
+	    return false;
+	}
+
+	return chosenMatrix[item][balance - _minimumOperation];
+    }
+
+    /** Sets true if the provided item with the provided balance value
+     * was marked as chosen in the provided matrix.
+     * 
+     * This method accesses the array taking into account the minimum
+     * operation optimization (i.e any balances lower than the minimum
+     * operation are directly returned with value zero).
+     * 
+     * @param chosenMatrix
+     * @param item
+     * @param balance
+     * @param value */
+    private void setChosenValue(boolean[][] chosenMatrix,
+	    int item,
+	    int balance,
+	    boolean value) {
+	chosenMatrix[item][balance - _minimumOperation] = value;
     }
 }

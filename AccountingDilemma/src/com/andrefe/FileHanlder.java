@@ -40,34 +40,56 @@ public class FileHanlder {
 
 	// parse the specified file
 	Path aPath = Paths.get(operationsFilePath);
-	try (BufferedReader reader = Files.newBufferedReader(aPath,
-		Charset.defaultCharset())) {
+	BufferedReader reader = Files.newBufferedReader(aPath,
+		Charset.defaultCharset());
+	try {
 	    // treat each line according to an integer and (optional) cents
-	    // value pattern
-	    Pattern valuePattern = Pattern.compile("(\\d+)(\\.[\\d]{0,2})");
+	    // value pattern: any leading space or + sign is tolerated
+	    Pattern valuePattern = Pattern.compile("^[\\s\\+]*(\\d+)(\\.[\\d]{0,2})");
 	    String line = null;
 	    while ((line = reader.readLine()) != null) {
 		// convert the string(s) to a cent value
 		Matcher valueMatcher = valuePattern.matcher(line);
-		if(valueMatcher.find())
-		{
-		    int value = Integer.parseInt(valueMatcher.group(1)) * 100;
-		    if (valueMatcher.groupCount() == 2) {
-			// strip the initial dot from the cent part
-			value += Integer.parseInt(valueMatcher.group(2)
-				.substring(1));
+		if (valueMatcher.find()) {
+		    int value = -1;
+		    try {
+			value = Integer.parseInt(valueMatcher.group(1)) * 100;
+
+			if (valueMatcher.groupCount() == 2) {
+			    // strip the initial dot from the cent part
+			    value += Integer.parseInt(valueMatcher.group(2)
+				    .substring(1));
+			}
+		    } catch (Exception e) {
+			// value is invalid
+			value = -1;
 		    }
+
+		    // a bogus negative value ended into the due payment list:
+		    // skip it
+		    if (value < 0) {
+			System.out.println("An invalid value was found ("
+				+ line + ") skipping it");
+			continue;
+		    }
+
 		    // the first line refers to the target balance
-		    if(targetBalance == -1){
+		    if (targetBalance == -1) {
 			targetBalance = value;
-		    }
-		    else{
+		    } else if (value <= targetBalance){
 			operations.add(value);
+		    }
+		    else {
+			System.out.println("Skipping value " + line
+				    + " since it is bigger than the targeted "
+				    + "balance");
 		    }
 		    // continuously evaluate the gcd
 		    gcd = gcd > 0 ? Gcd.compute(gcd, value) : value;
-		    
-		    
+
+		} else {
+		    System.out.println("An invalid value was found (" + line
+			    + ") skipping it");
 		}
 	    }
 	}
@@ -76,12 +98,16 @@ public class FileHanlder {
 	    System.err.println("Error while reading operations "
 		    + e.getMessage());
 	    throw e;
+	} finally {
+	    if (reader != null) {
+		reader.close();
+	    }
 	}
 
 	// create an object for the AccountingDilemma's processing - note that
 	// the priorityqueue containing the items will be converted to an
 	// arraylist
-	return new OperationBatch(targetBalance,operations,gcd);
+	return new OperationBatch(targetBalance, operations, gcd);
     }
 
     /** Writes down to the provided file the results set.
@@ -92,12 +118,12 @@ public class FileHanlder {
     public static void writeResults(String resultsFilePath,
 	    List<Integer> results) throws IOException {
 	Path aPath = Paths.get(resultsFilePath);
-	try (BufferedWriter writer = Files.newBufferedWriter(aPath,
-		Charset.defaultCharset())) {
+	BufferedWriter writer = Files.newBufferedWriter(aPath,
+		Charset.defaultCharset());
+	try {
 
 	    // if there are no results, write the default string
-	    if(results.size() == 0)
-	    {
+	    if (results.size() == 0) {
 		String noResult = "NO SOLUTION";
 		writer.write(noResult, 0, noResult.length());
 	    }
@@ -106,13 +132,12 @@ public class FileHanlder {
 	    for (Integer value : results) {
 		int integer = value / 100;
 		int cents = value % 100;
-		
+
 		// convert values from cent-based to decimal dotted ones
 		StringBuffer sb = new StringBuffer();
 		sb.append(integer);
 		sb.append('.');
-		if(cents <= 10)
-		{
+		if (cents <= 10) {
 		    sb.append("0");
 		}
 		sb.append(cents);
@@ -125,6 +150,10 @@ public class FileHanlder {
 	catch (IOException e) {
 	    System.err.println("Error while writing results " + e.getMessage());
 	    throw e;
+	} finally {
+	    if (writer != null) {
+		writer.close();
+	    }
 	}
     }
 }

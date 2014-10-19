@@ -40,9 +40,9 @@ public class FileHanlder {
 
 	// parse the specified file
 	Path aPath = Paths.get(operationsFilePath);
-	BufferedReader reader = Files.newBufferedReader(aPath,
-		Charset.defaultCharset());
+	BufferedReader reader = null;
 	try {
+	    reader= Files.newBufferedReader(aPath,Charset.defaultCharset());
 	    // treat each line according to an integer and (optional) cents
 	    // value pattern: any leading space or + sign is tolerated
 	    Pattern valuePattern = Pattern.compile("^[\\s\\+]*([0-9]+)(\\.[0-9]{0,2})[\\s]*$");
@@ -118,10 +118,9 @@ public class FileHanlder {
     public static void writeResults(String resultsFilePath,
 	    List<Integer> results) throws IOException {
 	Path aPath = Paths.get(resultsFilePath);
-	BufferedWriter writer = Files.newBufferedWriter(aPath,
-		Charset.defaultCharset());
+	BufferedWriter writer = null;
 	try {
-
+	    writer = Files.newBufferedWriter(aPath,Charset.defaultCharset());
 	    // if there are no results, write the default string
 	    if (results.size() == 0) {
 		String noResult = "NO SOLUTION";

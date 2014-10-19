@@ -35,23 +35,22 @@ public class FileHanlder {
 	int targetBalance = -1;
 	// prepare the array where we will put the line-by-line parsed data
 	Queue<Integer> operations = new PriorityQueue<Integer>();
-	// the gcd will be stored here
-	int gcd = 0;
 
 	// parse the specified file
 	Path aPath = Paths.get(operationsFilePath);
 	BufferedReader reader = null;
 	try {
-	    reader= Files.newBufferedReader(aPath,Charset.defaultCharset());
+	    reader = Files.newBufferedReader(aPath, Charset.defaultCharset());
 	    // treat each line according to an integer and (optional) cents
 	    // value pattern: any leading space or + sign is tolerated
-	    Pattern valuePattern = Pattern.compile("^[\\s\\+]*([0-9]+)(\\.[0-9]{0,2})[\\s]*$");
+	    Pattern valuePattern = Pattern
+		    .compile("^[\\s\\+]*([0-9]+)(\\.[0-9]{0,2})[\\s]*$");
 	    String line = null;
 	    while ((line = reader.readLine()) != null) {
 		// convert the string(s) to a cent value
 		Matcher valueMatcher = valuePattern.matcher(line);
+		int value = -1;
 		if (valueMatcher.find()) {
-		    int value = -1;
 		    try {
 			value = Integer.parseInt(valueMatcher.group(1)) * 100;
 
@@ -65,32 +64,36 @@ public class FileHanlder {
 			value = -1;
 		    }
 
-		    // a bogus negative value ended into the due payment list:
-		    // skip it
-		    if (value < 0) {
-			System.out.println("WARN - An invalid value was found ("
-				+ line + ") skipping it");
-			continue;
-		    }
-
-		    // the first line refers to the target balance
-		    if (targetBalance == -1) {
-			targetBalance = value;
-		    } else if (value <= targetBalance){
-			operations.add(value);
-		    }
-		    else {
-			System.out.println("WARN - Skipping value " + line
-				    + " since it is bigger than the targeted "
-				    + "balance");
-		    }
-		    // continuously evaluate the gcd
-		    gcd = gcd > 0 ? Gcd.compute(gcd, value) : value;
-
-		} else {
-		    System.out.println("WARN - An invalid value was found (" + line
-			    + ") skipping it");
 		}
+
+		// if we have no value for the target value yet, set it even
+		// if the value is negative
+		if ((value < 0) && (targetBalance < 0)) {
+		    targetBalance = value;
+		    System.out.println("WARN - An invalid value for the "
+		    	+ "target balance was found (" + line + 
+		    	"), this will lead to an empty result");
+		}
+		// if we have no value for the target value yet, set it
+		else if (targetBalance == -1) {
+		    targetBalance = value;
+		}
+		// if we have a bogus value for an operation, simply skip it
+		else if (value < 0) {
+		    System.out.println("WARN - An invalid value was found ("
+			    + line + ") skipping it");
+		}
+		// if the value is lower than the target balance
+		else if (value <= targetBalance) {
+		    operations.add(value);
+		}
+		// if the value is greater than the target balance
+		else {
+		    System.out.println("WARN - Skipping value " + line
+			    + " since it is bigger than the targeted "
+			    + "balance");
+		}
+
 	    }
 	}
 	// just log the error, but let the caller deal with that.
@@ -107,7 +110,7 @@ public class FileHanlder {
 	// create an object for the AccountingDilemma's processing - note that
 	// the priorityqueue containing the items will be converted to an
 	// arraylist
-	return new OperationBatch(targetBalance, operations, gcd);
+	return new OperationBatch(targetBalance, operations);
     }
 
     /** Writes down to the provided file the results set.
@@ -120,7 +123,7 @@ public class FileHanlder {
 	Path aPath = Paths.get(resultsFilePath);
 	BufferedWriter writer = null;
 	try {
-	    writer = Files.newBufferedWriter(aPath,Charset.defaultCharset());
+	    writer = Files.newBufferedWriter(aPath, Charset.defaultCharset());
 	    // if there are no results, write the default string
 	    if (results.size() == 0) {
 		String noResult = "NO SOLUTION";
@@ -148,7 +151,8 @@ public class FileHanlder {
 	}
 	// just log the error, but let the caller deal with that.
 	catch (IOException e) {
-	    System.err.println("ERR - Error while writing results " + e.getMessage());
+	    System.err.println("ERR - Error while writing results "
+		    + e.getMessage());
 	    throw e;
 	} finally {
 	    if (writer != null) {

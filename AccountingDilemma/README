@@ -15,13 +15,13 @@ Usage: find_payments.jar INPUT_FILE [OUTPUT_FILE]
 # input file (writes to output.txt as default)
 $ ./find_payments.jar ../res/input2.txt 
 INFO - Found 100 valid operations
-INFO - Result found in 25133990 iterations with gcd 1 for balance 7403.63
+INFO - Result found in 25133990 iterations for balance 7403.63
 INFO - Result written to output.txt
 
 # input and output file
 $ ./find_payments.jar ../res/input2.txt outputMy.txt
 INFO - Found 100 valid operations
-INFO - Result found in 25133990 iterations with gcd 1 for balance 7403.63
+INFO - Result found in 25133990 iterations for balance 7403.63
 INFO - Result written to outputMy.txt
 
 
@@ -30,28 +30,33 @@ INFO - Result written to outputMy.txt
 
 You can find summarized in this file the key points that helped me throughout designing a solution for the Accounting Dilemma problem.
 
-I modeled the presented problem as a change making problem, for which I intend a 0-1 knapsack problem with 
+I modeled the presented problem as a change making problem, for which I intend a 0-1 knapsack problem with: 
  - weights equal to values;
  - equality to the capacity (the bank transfer in our case) rather than a lower than constraint.
 
 As a minor note, I used throughout the code (and this README) the term targeted balance rather than bank transfer to identify the amount we want to find as sum of some operations.
 
 Therefore, I put in place a dynamic programming solution, leveraging on the fact that solving an accounting dilemma problem for the operations list X with balance b led to solve both:
- - Accounting Dilemma on operations list X - xi with balance b - xi
- - Accounting Dilemma on operations list X - xi with balance b
-With xi an operation within X.
+ - Accounting Dilemma on operations list X - xi with balance b - xi;
+ - Accounting Dilemma on operations list X - xi with balance b;
+with xi an operation within X. 
 
-If n is the number of operations and k the balance expressed in cents, the solutions that I have implemented has in principle a time complexity of O(nk).
+Therefore this (in principle) recursive solution with exponential complexity can be iteratively solved in pseudo polynomial time by solving all the problems from a one element operations list to the full set for all possible balances. 
+
+If n is the number of operations and k the balance expressed in cents, the implemented solution that has (without further optimization) a time complexity of O(nk) and a space complexity of O(nk).
 
 Before proceeding to some specific optimization that I tried to carry out to reduce the time/memory complexity, I extrapolated the following:
- - "having no targeted balance larger than 10,000 dollars" allowed me to a) consider only int values throughout the solution and b) skip any value in the due payments that was not mappable to an integer (for sure it would have not been a good candidate for a lower targeted balance).
- - I did not considered any negative value throughout the operations list: since the problem referred to "amount the company should receive as payment for a given product which has been recently sold", I assumed that bedits (negative values) were not to be considered.
+ - "having no targeted balance larger than 10,000 dollars" allowed me to: 
+      a) consider only 32 bit integer values throughout the solution (1,000,000 cents is lower than MAX_INT32);
+      b) skip any value in the due payments that was not mappable to an integer (for sure it would have not been a good candidate for a lower targeted balance); 
+      c) do not process any target balance which value is bigger than 10,000 $.
+ - I did not considered any negative value throughout the operations list: since the problem referred to "amount the company should receive as payment for a given product which has been recently sold", I assumed that "debits" (negative values) were not to be considered.
 
 Those two considerations are tested and analyzed in testFile4_OK_SkipInvalidOperations and testFile6_ERR_TooBigBalance of the AccountingDilemmaTest JUnit test class.
 
-I coded a dynamic programming solution based on a couple of optimizations so as to
- - reduce the time complexity to O(nk''), with k'' <= k
- - reduce the amount of space classically required while solving those problems
+I coded a dynamic programming solution based on a couple of optimizations so as to:
+ - reduce the time complexity to O(nk'), with k' <= k;
+ - reduce the space complexity to O(nk') + 2*O(k'), with k' <= k;
 
 _Roughly_ considering the generic structure of the solution as:
 
@@ -74,10 +79,9 @@ for step in range(0,numOperations):                     // outer cycle time O(n)
 		chosenMatrix[step][balance] = true
 
 I made the following consideration:
- - Since any correct solution is accepted, the computation is stopped as soon as a valid value is found. Therefore, in the complexity is reduced in the best case (testFile1_OK_AnySolution and testDirect_OK_AnySolution are testing that)
+ - Since any correct solution is accepted, the computation is stopped as soon as a valid value is found. Therefore, in the complexity is reduced in the best case (testFile1_OK_AnySolution and testDirect_OK_AnySolution are testing that).
  - There is no need at all to store all the steps encountered so far in a matrix: during the computation of the values, we just need the previous and current step. This leads to reduce the space complexity for the value matrix from O(nk) to 2*O(k) . However, the chosenMatrix still maintain the O(nk) space complexity.
- - While reading the operations list, I ordered them in ascending order in the (Array)List passed to the computing method: leveraging on the fact that the first element is the lowest one, I put in place a mechanism that allows to avoid any executions of the inner cycle for balance values lower than this minimum. A hint for that is given by looking at "check [1]": any value computation for balances lower than the minimum values will for sure lead to zero as overall value. Therefore, they can be returned when needed without memo'izing them into the method matrix. Under the "utility methods" part of the solution, for setters/getters for the matrix were put in place to handle the in place offset. Therefore, the time complexity of the algorithm boils down to O(nk') where k' is the difference between the balance expressed in cents and the lowest value expressed in cents (when the value of the lowest operation is 1 cent, k' = k)
- - Finally, there is no need to consider all the cents between the minimum balance and the targeted balance: while parsing the input file and building the operations list, also the GCD is evaluated and finally passed as pace for the inner cycle. This leads us to another refinement of k'' <= k' <= k that greatly reduces the time complexity when the GCD is not 1.
+ - While reading the operations list, I ordered them in ascending order in the (Array)List passed to the computing method: leveraging on the fact that the first element is the lowest one, I put in place a mechanism that allows to avoid any executions of the inner cycle for balance values lower than this minimum. A hint for that is given by looking at "check [1]": any value computation for balances lower than the minimum values will for sure lead to zero as overall value. Therefore, they can be returned when needed without memo'izing them into the method matrix. Under the "utility methods" part of the solution, for setters/getters for the matrix were put in place to handle the in place offset. Therefore, the time complexity of the algorithm boils down to O(nk') where k' is the difference between the balance expressed in cents and the lowest value expressed in cents (when the value of the lowest operation is 1 cent, k' = k).
 
 There are also some comments in the code that should help while looking at the solution, as well as unit tests in the AccountDilemmaTest that I used so as to validate the solution.
 

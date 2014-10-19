@@ -28,7 +28,6 @@ public class AccountingDilemma {
      * @return the subset of values whose sum is the balance. */
     public List<Integer> computeSequenceIterative(
 	    List<Integer> orderedOperations,
-	    int gcd,
 	    int targetBalance) {
 
 	/* As naming convention:
@@ -60,7 +59,8 @@ public class AccountingDilemma {
 	    return new ArrayList<Integer>();
 	}
 	
-	if (targetBalance > MAX_TARGET_BALANCE) {
+	// check if the target value is not inside the proper boundaries
+	if ( (targetBalance > MAX_TARGET_BALANCE) || (targetBalance < 0)) {
 	    return new ArrayList<Integer>();
 	}
 
@@ -97,11 +97,6 @@ public class AccountingDilemma {
 	boolean[][] chosenItems = new boolean[steps][rounds]; // all elements
 							      // set to false
 
-	// OPTIMIZATION: we could have simply used ++
-	// by using the greater common divisor, we will be able to skip cents
-	// value that will never be used.
-	int balanceIncrease = gcd;
-
 	int balance = 0;
 	int numberOfIterations = 0;
 	// for each item
@@ -110,7 +105,7 @@ public class AccountingDilemma {
 	    // for each balance
 	    for (   balance = _minimumOperation; 
 		    balance <= targetBalance; 
-		    balance += balanceIncrease) {
+		    ++balance) {
 		int chosenBalance = getBalanceValue(previousStep, balance);
 		// check if there is enough balance to consider this operation
 		if (balance >= operation) {
@@ -163,7 +158,7 @@ public class AccountingDilemma {
 	int finalBalance = getBalanceValue(currentStep, balance);
 	// emit the result list from the chosen items matrix
 	List<Integer> resultingList = emitSolution(finalBalance, targetBalance,
-		numberOfIterations, steps, gcd, orderedOperations, chosenItems);
+		numberOfIterations, steps, orderedOperations, chosenItems);
 
 	return resultingList;
     }
@@ -185,7 +180,6 @@ public class AccountingDilemma {
 	    int targetBalance,
 	    int numberOfSteps,
 	    int steps,
-	    int gcd,
 	    List<Integer> orderedOperations,
 	    boolean[][] chosenItems) {
 	
@@ -210,7 +204,7 @@ public class AccountingDilemma {
 	    }
 
 	    System.out.println("INFO - Result found in " + numberOfSteps
-		    + " iterations with gcd " + gcd + " for balance "
+		    + " iterations for balance "
 		    + targetBalance / 100.0);
 	}
 	return resultingList;
@@ -236,7 +230,7 @@ public class AccountingDilemma {
 		    + operationBatch.getOperations().size()
 		    + " valid operations");
 	    results = computeSequenceIterative(operationBatch.getOperations(),
-		    operationBatch.getGcd(), operationBatch.getTargetBalance());
+		    operationBatch.getTargetBalance());
 	} catch (Exception e) {
 	    results.clear();
 	}

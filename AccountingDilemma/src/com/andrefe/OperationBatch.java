@@ -17,16 +17,13 @@ public class OperationBatch {
 
     private int _targetBalance;
     private List<Integer> _operations;
-    private int _gcd;
 
     public OperationBatch(
 	    int targetBalance,
-	    Queue<Integer> operations,
-	    int gcd) {
+	    Queue<Integer> operations) {
 	super();
 	_targetBalance = targetBalance;
 	_operations = new ArrayList<Integer>(operations);
-	_gcd = gcd;
     }
 
     public int getTargetBalance() {
@@ -35,10 +32,6 @@ public class OperationBatch {
 
     public List<Integer> getOperations() {
 	return _operations;
-    }
-
-    public int getGcd() {
-	return _gcd;
     }
 
 }
